@@ -1,11 +1,26 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
+import { LoginPage } from './pages/LoginPage';
+import { users } from './data/users';
 
 test ('Successful login with valid credentials', async ({ page }) => {
-    await page.goto('https://www.saucedemo.com'); 
-    await page.fill('#user-name', 'standard_user');
-    await page.fill('#password', 'secret_sauce');
-    await page.click('#login-button');
+    const loginPage = new LoginPage(page);
 
-    await expect(page).toHaveURL(/inventory/);
-
+    await loginPage.open();
+    
+const inventoryPage = await loginPage.login(users.standard);    
+    await inventoryPage.verifyNumberOfProducts(6);
+    await inventoryPage.verifyProductExists('Backpack');
 });
+
+
+test  ('Invalid login show error message', async ({ page }) => {
+   const loginPage = new LoginPage(page);
+
+    await loginPage.open();
+    await loginPage.attemptLogin(users.invalid);
+    await loginPage.verifyInvalidCredentialsMessage();
+});
+
+
+
+
