@@ -1,4 +1,4 @@
-import {expect, Page, Locator } from '@playwright/test';
+import {expect, Page, Locator} from '@playwright/test';
 type Product = {
     name: string;
     price: number;
@@ -8,11 +8,13 @@ export class InventoryPage {
       private readonly inventoryItems: Locator;
       private readonly inventoryItemNames: Locator;
       private readonly productPrices: Locator;
+      private readonly cartBadge: Locator;
 
     constructor(private readonly page: Page){
         this.inventoryItems = this.page.locator('.inventory_item');
         this.inventoryItemNames = this.page.locator('.inventory_item_name');
         this.productPrices = this.page.locator('.inventory_item_price');
+        this.cartBadge = this.page.locator('.shopping_cart_badge');
     }
     
     async verifyNumberOfProducts(expectedCount: number) {
@@ -70,10 +72,56 @@ export class InventoryPage {
         async getProducts(): Promise<Product[]> {
             const productNames = await this.getAllProductNames();
             const productPrices = await this.productPrices.allTextContents();
-                   
-            return productNames.map((name, index) => ({
+        
+            return productNames.map((name, index) =>({
                 name,
                 price: parseFloat(productPrices[index].replace('$', '')),
+                
             }));
+        }  
+        async  getProductPriceByIndex(index: number): Promise<number> {
+            const product = this.inventoryItems.nth(index);
+            
+            const priceText = await product
+                 .locator('.inventory_item_price')
+                 .textContent();
+            
+            if (priceText === null) {
+                throw new Error ('Product price was not found');
+            }      
+            
+            return parseFloat(priceText.replace('$', ''));
+
         }
+        async getProductPriceByName(productName: string): Promise<number> {
+            const index = await this.getProductIndex(productName);
+            if (index === -1) {
+                throw new Error(`Product with name "${productName}" not found`);
+            }
+            return await this.getProductPriceByIndex(index);    
+        }
+        async getProductPriceByNameDirect(productName: string): Promise<number> {  
+            const product = this.inventoryItems
+            .filter({ hasText: productName })
+            .first();
+            const priceText = await product.locator('.inventory_item_price').textContent();
+
+            if (priceText === null) {
+                 throw new Error(`Product price for "${productName}" was not found`);
+            }   
+
+            return parseFloat(priceText.replace('$', ''));
+        }
+        async addProductToCartByName(productName: string): Promise<void> {
+            const product = this.inventoryItems
+                .filter({ hasText: productName })
+                .first();
+            const addToCartButton = product.locator('button:has-text("Add to cart")');
+            await addToCartButton.click();
+        }
+        async verifyCartCount(expectedCount: number): Promise<void> {
+            await expect(this.cartBadge).toHaveText(expectedCount.toString());
+        }
+    
+                
     }

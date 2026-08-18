@@ -16,7 +16,6 @@ test ('Successful login with valid credentials', async ({ page }) => {
     expect(foundProduct).toBeDefined();
     console.log(`Found product: ${foundProduct}`);
     const products = await inventoryPage.getProducts();
-    console.log('Products:', products);
 });
 
 
@@ -47,6 +46,20 @@ test ('verify at least one product costs more than 40$', async ({ page }) => {
     const products = await inventoryPage.getProducts();
        expect(
         products.some(p => p.price > 40)).toBe(true);
-});                   
-    
+    const directPrice = 
+    await inventoryPage.getProductPriceByNameDirect('Backpack');
 
+    expect(directPrice).toBe(29.99);
+});         
+
+ test('add product to cart by name', async ({ page }) => {
+            const loginPage = new LoginPage(page);
+            await loginPage.open();
+            
+            const inventoryPage = await loginPage.login(users.standard);
+            
+            await inventoryPage.addProductToCartByName('Backpack');
+            await inventoryPage.verifyCartCount(1);
+
+        }
+    )
