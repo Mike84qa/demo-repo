@@ -14,7 +14,6 @@ test ('Successful login with valid credentials', async ({ page }) => {
     await inventoryPage.verifyProductExists('Backpack');
     const foundProduct = await inventoryPage.findProductByName('Backpack');
     expect(foundProduct).toBeDefined();
-    console.log(`Found product: ${foundProduct}`);
     const products = await inventoryPage.getProducts();
 });
 
@@ -60,6 +59,11 @@ test ('verify at least one product costs more than 40$', async ({ page }) => {
             
             await inventoryPage.addProductToCartByName('Backpack');
             await inventoryPage.verifyCartCount(1);
+            const cartPage = await inventoryPage.openCart();
+            await cartPage.verifyProductExists('Backpack');
+            await cartPage.verifyProductPrice('Backpack', 29.99);
+            await cartPage.removeProductByName('Backpack');
+            await cartPage.verifyProductNotExists('Backpack');
 
         }
     )

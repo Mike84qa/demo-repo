@@ -1,4 +1,5 @@
 import {expect, Page, Locator} from '@playwright/test';
+import { CartPage } from './CartPage';
 type Product = {
     name: string;
     price: number;
@@ -9,12 +10,15 @@ export class InventoryPage {
       private readonly inventoryItemNames: Locator;
       private readonly productPrices: Locator;
       private readonly cartBadge: Locator;
+      private readonly cartLink: Locator;
+      
 
     constructor(private readonly page: Page){
         this.inventoryItems = this.page.locator('.inventory_item');
         this.inventoryItemNames = this.page.locator('.inventory_item_name');
         this.productPrices = this.page.locator('.inventory_item_price');
         this.cartBadge = this.page.locator('.shopping_cart_badge');
+        this.cartLink = this.page.locator('.shopping_cart_link');
     }
     
     async verifyNumberOfProducts(expectedCount: number) {
@@ -121,6 +125,12 @@ export class InventoryPage {
         }
         async verifyCartCount(expectedCount: number): Promise<void> {
             await expect(this.cartBadge).toHaveText(expectedCount.toString());
+        }
+        async openCart(): Promise<CartPage> {
+            await this.cartLink.click();
+            return new CartPage(this.page);
+            const cartPage = await this.openCart();
+            await cartPage.verifyProductExists('Backpack');
         }
     
                 
