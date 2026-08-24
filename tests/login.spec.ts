@@ -52,18 +52,46 @@ test ('verify at least one product costs more than 40$', async ({ page }) => {
 });         
 
  test('add product to cart by name', async ({ page }) => {
-            const loginPage = new LoginPage(page);
-            await loginPage.open();
+    const loginPage = new LoginPage(page);
+     await loginPage.open();
             
-            const inventoryPage = await loginPage.login(users.standard);
+      const inventoryPage = await loginPage.login(users.standard);
             
-            await inventoryPage.addProductToCartByName('Backpack');
-            await inventoryPage.verifyCartCount(1);
-            const cartPage = await inventoryPage.openCart();
-            await cartPage.verifyProductExists('Backpack');
-            await cartPage.verifyProductPrice('Backpack', 29.99);
-            await cartPage.removeProductByName('Backpack');
-            await cartPage.verifyProductNotExists('Backpack');
+     await inventoryPage.addProductToCartByName('Backpack');
+    await inventoryPage.verifyCartCount(1);
+    const cartPage = await inventoryPage.openCart();
+    await cartPage.verifyProductExists('Backpack');
+    await cartPage.verifyProductPrice('Backpack', 29.99);
+    await cartPage.removeProductByName('Backpack');
+    await cartPage.verifyProductNotExists('Backpack');
 
-        }
-    )
+        });
+
+test('complete checkout with customer information', async ({ page }) => {
+    const loginPage = new LoginPage(page)
+    await loginPage.open()
+    
+    const inventoryPage = await loginPage.login(users.standard);
+
+    await inventoryPage.addProductToCartByName('Backpack');
+    const cartPage = await inventoryPage.openCart();
+
+    const checkoutPage = await cartPage.proceedToCheckout();
+
+    await checkoutPage.fillCustomerInformation(
+        'Michael',
+        'Test',
+        '12345'); 
+
+    await checkoutPage.continueCheckout();
+
+    await checkoutPage.verifyProductExists('Backpack');
+    await checkoutPage.verifyProductPrice('Backpack', 29.99);
+    await checkoutPage.finishCheckout();
+    await checkoutPage.verifyCheckoutComplete();
+
+});
+        
+
+
+ 
